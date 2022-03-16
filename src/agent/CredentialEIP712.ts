@@ -11,11 +11,19 @@ import {
   IRequiredContext,
 } from '../types/ICredentialEIP712'
 
-import { promisify } from "util";
+// import { promisify } from "util";
 
 import { canonicalize } from "json-canonicalize";
 import Web3 from "web3";
 import { getEthTypesFromInputDoc } from "eip-712-types-generation";
+
+const promisify = (inner:any) =>
+  new Promise((resolve, reject) =>
+    inner((err:any, res:any) => {
+      if (err) { reject(err) }
+      resolve(res);
+    })
+  );
 
 /**
  * A Veramo plugin that implements the {@link ICredentialIssuerEIP712} methods.
@@ -101,13 +109,35 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
     };
 
     const types = getEthTypesFromInputDoc(message, "VerifiableCredential");
+    console.log("types: ", types);
     const from = ethAddress;
     const obj = { types, domain, primaryType: "VerifiableCredential", message };
     const canonicalizedObj = canonicalize(obj);
     console.log("canonicalizedObj: ", canonicalizedObj);
 
+    console.log("from: ", from);
+
+    console.log("web3: ", this.web3);
+
     /* @ts-ignore: Ignore TS issue */
-    const signature = await promisify(web3?.currentProvider?.sendAsync({ method: "eth_signTypedData_v4", params: [from, canonicalizedObj], from }));
+    // const signature = await this.web3?.eth?.request({ method: "eth_signTypedData_v4", params: [from, canonicalizedObj], from });
+
+    /* @ts-ignore: Ignore TS issue */
+    // const signature = await promisify(cb => {
+    //   /* @ts-ignore: Ignore TS issue */
+    //   this.web3?.currentProvider?.send({ method: "eth_signTypedData_v4", params: [from, canonicalizedObj], from }, (err, res) => {
+    //     if (err) {
+    //       console.error("some kind of error: ", err)
+    //     } else {
+    //       console.log("res: ", res);
+    //       cb(res.result);
+    //     }
+    //   })
+    // });
+    const signature = await promisify(cb => {
+      /* @ts-ignore: Ignore TS issue */
+      this.web3?.currentProvider?.send({ method: "eth_signTypedData_v4", params: [from, canonicalizedObj], from }, cb)});
+    console.log("signatur2e: ", signature);
 
     
     const newObj = JSON.parse(JSON.stringify(message));
