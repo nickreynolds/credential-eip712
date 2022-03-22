@@ -1,5 +1,5 @@
 import {
-  // CredentialPayload,
+  CredentialPayload,
   IAgentContext,
   IPluginMethodMap,
   IResolver,
@@ -51,7 +51,13 @@ export interface ICreateVerifiableCredentialEIP712Args {
    *
    * '@context', 'type' and 'issuanceDate' will be added automatically if omitted
    */
-  // credential: CredentialPayload
+  credential: CredentialPayload
+
+  /**
+   * The Ethereum account to be used to sign the credential. Mostly likely will be identical to last element of DID URL,
+   * but could differ if controller of DID has been changed.
+   */
+  ethereumAccountId: string;
 }
 
 /**

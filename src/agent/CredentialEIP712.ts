@@ -1,11 +1,18 @@
 import {
   IAgentPlugin,
   VerifiableCredential,
-} from '@veramo/core'
+  CredentialPayload,
+  DIDResolutionResult,
+} from "@veramo/core"
+import {
+  _ExtendedIKey,
+  extractIssuer,
+  MANDATORY_CREDENTIAL_CONTEXT,
+  processEntryToArray,
+} from "@veramo/utils"
 import { schema } from '../index'
 
 import {
-  ContextDoc,
   ICreateVerifiableCredentialEIP712Args,
   ICredentialIssuerEIP712,
   IRequiredContext,
@@ -42,102 +49,61 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
     this.web3 = web3;
   }
 
-  /** {@inheritdoc ICredentialIssuerLD.createVerifiableCredentialLD} */
+  /** {@inheritdoc ICredentialIssuerEIP712.createVerifiableCredentialEIP712} */
   public async createVerifiableCredentialEIP712(
     args: ICreateVerifiableCredentialEIP712Args,
     context: IRequiredContext,
   ): Promise<VerifiableCredential> {
-  //   const credentialContext = processEntryToArray(
-  //     args?.credential?.['@context'],
-  //     MANDATORY_CREDENTIAL_CONTEXT,
-  //   )
-  //   const credentialType = processEntryToArray(args?.credential?.type, 'VerifiableCredential')
-  //   let issuanceDate = args?.credential?.issuanceDate || new Date().toISOString()
-  //   if (issuanceDate instanceof Date) {
-  //     issuanceDate = issuanceDate.toISOString()
-  //   }
-  //   const credential: CredentialPayload = {
-  //     ...args?.credential,
-  //     '@context': credentialContext,
-  //     type: credentialType,
-  //     issuanceDate,
-  //   }
+    const credentialContext = processEntryToArray(
+      args?.credential?.['@context'],
+      MANDATORY_CREDENTIAL_CONTEXT,
+    )
+    const credentialType = processEntryToArray(args?.credential?.type, 'VerifiableCredential')
+    let issuanceDate = args?.credential?.issuanceDate || new Date().toISOString()
+    if (issuanceDate instanceof Date) {
+      issuanceDate = issuanceDate.toISOString()
+    }
+    const credential: CredentialPayload = {
+      ...args?.credential,
+      '@context': credentialContext,
+      type: credentialType,
+      issuanceDate,
+    }
 
-  //   const issuer = extractIssuer(credential)
-  //   if (!issuer || typeof issuer === 'undefined') {
-  //     throw new Error('invalid_argument: args.credential.issuer must not be empty')
-  //   }
+    const issuer = extractIssuer(credential)
+    if (!issuer || typeof issuer === 'undefined') {
+      throw new Error('invalid_argument: args.credential.issuer must not be empty')
+    }
 
-  //   let identifier: IIdentifier
-  //   try {
-  //     identifier = await context.agent.didManagerGet({ did: issuer })
-  //   } catch (e) {
-  //     throw new Error(`invalid_argument: args.credential.issuer must be a DID managed by this agent. ${e}`)
-  //   }
-  //   try {
-  //     const { signingKey, verificationMethodId } = await this.findSigningKeyWithId(
-  //       context,
-  //       identifier,
-  //       args.keyRef,
-  //     )
+    let did: DIDResolutionResult;
+    try {
+      did = await context.agent.resolveDid({ didUrl: issuer });
+    } catch (e) {
+      throw new Error(`Unable to resolve specified DID: ${issuer}. ${e}`);
+    }
 
-  //     return await this.ldCredentialModule.issueLDVerifiableCredential(
-  //       credential,
-  //       identifier.did,
-  //       signingKey,
-  //       verificationMethodId,
-  //       context,
-  //     )
-  //   } catch (error) {
-  //     debug(error)
-  //     return Promise.reject(error)
-  //   }
-  // }
+    // TODO: use util to get properly formatted blockchainAccountId
+    const blockchainAccountId = did.didDocument?.verificationMethod![0].blockchainAccountId?.split("@")[0];
 
-    const profileUrl = "http://twitter.com/test1";
-    const ethAddress = "0xcEC56F1D4Dc439E298D5f8B6ff3Aa6be58Cd6Fdf"
+    if(this.web3.utils.toChecksumAddress(args.ethereumAccountId) !== this.web3.utils.toChecksumAddress(blockchainAccountId!)) {
+      throw new Error(`Controller of specified DID does not match Ethereum Account given.`);
+    }
 
-    const did = "did:ethr:" + ethAddress;
-    const date = new Date().toISOString();
-
-    let message = constructSocialMediaProfileLinkage(did, date, profileUrl);
-
+    const message = credential;
     const domain = {
       chainId: 1,
-      name: "SocialMediaProfileLinkage",
+      name: "VerifiableCredential",
       version: "1",
     };
 
     const types = getEthTypesFromInputDoc(message, "VerifiableCredential");
-    console.log("types: ", types);
-    const from = ethAddress;
-    const obj = { types, domain, primaryType: "VerifiableCredential", message };
-    const canonicalizedObj = canonicalize(obj);
-    console.log("canonicalizedObj: ", canonicalizedObj);
+    const from = args.ethereumAccountId;
+    const obj = canonicalize({ types, domain, primaryType: "VerifiableCredential", message });
 
-    console.log("from: ", from);
-
-    console.log("web3: ", this.web3);
-
-    /* @ts-ignore: Ignore TS issue */
-    // const signature = await this.web3?.eth?.request({ method: "eth_signTypedData_v4", params: [from, canonicalizedObj], from });
-
-    /* @ts-ignore: Ignore TS issue */
-    // const signature = await promisify(cb => {
-    //   /* @ts-ignore: Ignore TS issue */
-    //   this.web3?.currentProvider?.send({ method: "eth_signTypedData_v4", params: [from, canonicalizedObj], from }, (err, res) => {
-    //     if (err) {
-    //       console.error("some kind of error: ", err)
-    //     } else {
-    //       console.log("res: ", res);
-    //       cb(res.result);
-    //     }
-    //   })
-    // });
-    const signature = await promisify(cb => {
+    const signature = await promisify((cb: any) => {
       /* @ts-ignore: Ignore TS issue */
-      this.web3?.currentProvider?.send({ method: "eth_signTypedData_v4", params: [from, canonicalizedObj], from }, cb)});
-    console.log("signatur2e: ", signature);
+      this.web3?.currentProvider?.send({ method: "eth_signTypedData_v4", params: [from, obj], from }, cb)
+    });
 
     
     const newObj = JSON.parse(JSON.stringify(message));
@@ -153,107 +119,3 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
     return newObj;
   }
 }
-
-function constructSocialMediaProfileLinkage(did: string, date: string, profileUrl: string) {
-  return {
-    "@context": [
-      "https://www.w3.org/2018/credentials/v1",
-      "https://beta.api.schemas.serto.id/v1/public/social-media-linkage-credential/1.0/ld-context.json",
-    ],
-    type: ["VerifiableCredential", "SocialMediaProfileLinkage"],
-    issuer: did,
-    issuanceDate: date,
-    credentialSubject: {
-      socialMediaProfileUrl: profileUrl,
-      id: did,
-    },
-    credentialSchema: {
-      id: "https://beta.api.schemas.serto.id/v1/public/social-media-linkage-credential/1.0/json-schema.json",
-      type: "JsonSchemaValidator2018",
-    },
-    proof: {
-      verificationMethod: did + "#controller",
-      created: date,
-      proofPurpose: "assertionMethod",
-      type: "EthereumEip712Signature2021",
-    }
-  };
-}
-
-const socialMediaProfileLinkageTypes = 
-{
-  EIP712Domain: [
-    { name: "name", type: "string" },
-    { name: "version", type: "string" },
-    { name: "chainId", type: "uint256" },
-  ],
-  VerifiableCredential: [
-    {
-      name: "@context",
-      type: "string[]",
-    },
-    {
-      name: "type",
-      type: "string[]",
-    },
-
-    {
-      name: "issuer",
-      type: "string",
-    },
-    {
-      name: "issuanceDate",
-      type: "string",
-    },
-    {
-      name: "credentialSubject",
-      type: "CredentialSubject",
-    },
-    {
-      name: "credentialSchema",
-      type: "CredentialSchema",
-    },
-    {
-      name: "proof",
-      type: "Proof",
-    },
-  ],
-  CredentialSchema: [
-    {
-      name: "id",
-      type: "string",
-    },
-    {
-      name: "type",
-      type: "string",
-    },
-  ],
-  CredentialSubject: [
-    {
-      name: "socialMediaProfileUrl",
-      type: "string",
-    },
-    {
-      name: "id",
-      type: "string",
-    },
-  ],
-  Proof: [
-    {
-      name: "verificationMethod",
-      type: "string",
-    },
-    {
-      name: "created",
-      type: "string",
-    },
-    {
-      name: "proofPurpose",
-      type: "string",
-    },
-    {
-      name: "type",
-      type: "string",
-    },
-  ],
-};
