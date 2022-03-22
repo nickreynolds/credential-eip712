@@ -43,6 +43,7 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
   readonly web3: Web3
 
   constructor(web3:Web3) {
+    if (!web3) throw Error('Missing Web3')
     this.methods = {
       createVerifiableCredentialEIP712: this.createVerifiableCredentialEIP712.bind(this),
     }
@@ -75,6 +76,8 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
       throw new Error('invalid_argument: args.credential.issuer must not be empty')
     }
 
+
+    // use resolveOrThrow util
     let did: DIDResolutionResult;
     try {
       did = await context.agent.resolveDid({ didUrl: issuer });
@@ -107,6 +110,13 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
 
     
     const newObj = JSON.parse(JSON.stringify(message));
+
+    newObj.proof = {
+      verificationMethod: did + "#controller",
+      created: issuanceDate,
+      proofPurpose: "assertionMethod",
+      type: "EthereumEip712Signature2021",
+    }
 
     newObj.proof.proofValue = signature;
 
