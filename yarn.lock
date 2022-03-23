@@ -5236,10 +5236,10 @@ ee-first@1.1.1:
   resolved "https://registry.yarnpkg.com/ee-first/-/ee-first-1.1.1.tgz#590c61156b0ae2f4f0255732a158b266bc56b21d"
   integrity sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=
 
-eip-712-types-generation@^0.1.2:
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/eip-712-types-generation/-/eip-712-types-generation-0.1.3.tgz#e709cb1b9737da304e6fc327c8e47ff745c51cf6"
-  integrity sha512-ixnmdKG3tbEPlt4tUdUfbH46W9jKTKipoVJvm1PAe5fxzSCqXhwWkK0rvP9ZW40s2L/3HGK4mwKRAf4irKtPsw==
+eip-712-types-generation@^0.1.6:
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/eip-712-types-generation/-/eip-712-types-generation-0.1.6.tgz#5f5d6ff57a10b00bd616acb8cabf91bcf9fa4d68"
+  integrity sha512-O2zjZcGFKyuXxW3s5ATxA1EJzszWHKYASBqpIyIhXzvFW6YFkYdDIgsoAdLnX3ClZd6908xaOPPPbTVgXy0URQ==
   dependencies:
     json-canonicalize "^1.0.4"
 
@@ -5964,7 +5964,7 @@ ethereumjs-wallet@^1.0.0, ethereumjs-wallet@^1.0.1:
     utf8 "^3.0.0"
     uuid "^8.3.2"
 
-ethers@^5.6.1:
+ethers@5.6.1:
   version "5.6.1"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.6.1.tgz#a56cd67f1595b745dc3dde0ccf2b5de53a41a6d0"
   integrity sha512-qtl/2W+dwmUa5Z3JqwsbV3JEBZZHNARe5K/A2ePcNAuhJYnEKIgGOT/O9ouPwBijSqVoQnmQMzi5D48LFNOY2A==

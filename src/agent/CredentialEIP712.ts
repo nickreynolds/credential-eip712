@@ -22,8 +22,8 @@ import {
 
 import { canonicalize } from "json-canonicalize";
 import Web3 from "web3";
-import { getEthTypesFromInputDoc } from "eip-712-types-generation";
-import { Wallet } from "ethers";
+import { getEthTypesFromInputDocEthers } from "eip-712-types-generation";
+import { Signer } from "ethers";
 
 const promisify = (inner:any) =>
   new Promise((resolve, reject) =>
@@ -41,9 +41,9 @@ const promisify = (inner:any) =>
 export class CredentialIssuerEIP712 implements IAgentPlugin {
   readonly methods: ICredentialIssuerEIP712
   readonly schema = schema.ICredentialIssuer
-  readonly signer: Wallet
+  readonly signer: Signer
 
-  constructor(signer:Wallet) {
+  constructor(signer:Signer) {
     if (!signer) throw Error('Missing Web3')
     this.methods = {
       createVerifiableCredentialEIP712: this.createVerifiableCredentialEIP712.bind(this),
@@ -101,7 +101,7 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
     };
 
     console.log("prego");
-    const types = getEthTypesFromInputDoc(message, "VerifiableCredential");
+    const types = getEthTypesFromInputDocEthers(message, "VerifiableCredential");
     console.log("postgo. types: ", types);
     const from = args.ethereumAccountId;
     const obj = canonicalize({ types, domain, primaryType: "VerifiableCredential", message });
@@ -112,6 +112,8 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
     //   /* @ts-ignore: Ignore TS issue */
     //   this.web3?.currentProvider?.send({ method: "eth_signTypedData_v4", params: [from, obj], from }, cb)
     // });
+
+    /* @ts-ignore: Ignore TS issue */
     const signature = await this.signer._signTypedData(domain, types, message)
     console.log("signature: ", signature);
 
