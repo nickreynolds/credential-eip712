@@ -6,7 +6,8 @@ import Web3 from 'web3'
 import HookedWalletSubprovider from "web3-provider-engine";
 import HDWalletProvider from '@truffle/hdwallet-provider'
 import Ganache from "ganache-core";
-// import ethers from "ethers";
+import ethers from "ethers";
+import { Wallet } from "ethers";
 
 const context: IRequiredContext = {
   agent: {
@@ -89,6 +90,10 @@ describe('credential-eip712', () => {
     providerOrUrl: "https://mainnet.infura.io/v3/b28f5c9bf2964b5fa2814b679a28611b",
     addressIndex: 5
   });
+
+  const privateKeyHex = '9ba4417ca5f5c56be5c264f8248629291d1a0a820fa7fc9d803ea9a9aa51aba7'
+  const wallet = new Wallet(privateKeyHex);
+  const account = "0x8141Ba515A7Fce6736813196ecA1d9A0109eC913";
 
     
   // const testProvider = new HookedWalletSubprovider({
@@ -175,7 +180,7 @@ describe('credential-eip712', () => {
   })
 
   it('should have resolve method', () => {
-    const resolver = new CredentialIssuerEIP712(new Web3())
+    const resolver = new CredentialIssuerEIP712(wallet)
     expect(resolver).toHaveProperty("createVerifiableCredentialEIP712")
   })
 
@@ -185,10 +190,10 @@ describe('credential-eip712', () => {
     //const provider = ganache.provider();
     // const etherprovider = new ethers.providers.Web3Provider(ganache.provider());
     //const web3 = new Web3(<any>provider);
-    const ethAddress = ((await web3.eth.getAccounts())[0]).toLowerCase();
+    const ethAddress = account; //((await web3.eth.getAccounts())[0]).toLowerCase();
     console.log("account:", ethAddress);
 
-    const resolver = new CredentialIssuerEIP712(web3)
+    const resolver = new CredentialIssuerEIP712(wallet)
     // console.log("account: ", account);
     const did = "did:ethr:" + ethAddress;
     const cred = constructSocialMediaProfileLinkage(did, new Date().toISOString(), "test");

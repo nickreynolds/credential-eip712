@@ -23,6 +23,7 @@ import {
 import { canonicalize } from "json-canonicalize";
 import Web3 from "web3";
 import { getEthTypesFromInputDoc } from "eip-712-types-generation";
+import { Wallet } from "ethers";
 
 const promisify = (inner:any) =>
   new Promise((resolve, reject) =>
@@ -40,14 +41,14 @@ const promisify = (inner:any) =>
 export class CredentialIssuerEIP712 implements IAgentPlugin {
   readonly methods: ICredentialIssuerEIP712
   readonly schema = schema.ICredentialIssuer
-  readonly web3: Web3
+  readonly signer: Wallet
 
-  constructor(web3:Web3) {
-    if (!web3) throw Error('Missing Web3')
+  constructor(signer:Wallet) {
+    if (!signer) throw Error('Missing Web3')
     this.methods = {
       createVerifiableCredentialEIP712: this.createVerifiableCredentialEIP712.bind(this),
     }
-    this.web3 = web3;
+    this.signer = signer;
   }
 
   /** {@inheritdoc ICredentialIssuerEIP712.createVerifiableCredentialEIP712} */
@@ -88,9 +89,9 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
     // TODO: use util to get properly formatted blockchainAccountId
     const blockchainAccountId = did.didDocument?.verificationMethod![0].blockchainAccountId?.split("@")[0];
 
-    if(this.web3.utils.toChecksumAddress(args.ethereumAccountId) !== this.web3.utils.toChecksumAddress(blockchainAccountId!)) {
-      throw new Error(`Controller of specified DID does not match Ethereum Account given.`);
-    }
+    // if(this.web3.utils.toChecksumAddress(args.ethereumAccountId) !== this.web3.utils.toChecksumAddress(blockchainAccountId!)) {
+    //   throw new Error(`Controller of specified DID does not match Ethereum Account given.`);
+    // }
 
     const message = credential;
     const domain = {
@@ -106,11 +107,12 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
     const obj = canonicalize({ types, domain, primaryType: "VerifiableCredential", message });
 
     console.log("obj: ", obj);
-    const signature = await promisify((cb: any) => {
-      console.log("provider: ", this.web3?.currentProvider);
-      /* @ts-ignore: Ignore TS issue */
-      this.web3?.currentProvider?.send({ method: "eth_signTypedData_v4", params: [from, obj], from }, cb)
-    });
+    // const signature = await promisify((cb: any) => {
+    //   console.log("provider: ", this.web3?.currentProvider);
+    //   /* @ts-ignore: Ignore TS issue */
+    //   this.web3?.currentProvider?.send({ method: "eth_signTypedData_v4", params: [from, obj], from }, cb)
+    // });
+    const signature = await this.signer._signTypedData(domain, types, message)
     console.log("signature: ", signature);
 
     
