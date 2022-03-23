@@ -1,5 +1,5 @@
 {
-  "moduleFileExtensions": ["ts", "tsx", "js", "jsx"],
+  "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "node", "json"],
   "collectCoverage": true,
   "collectCoverageFrom": ["src/**/*.ts", "!**/types/**", "!**/build/**", "!**/node_modules/**"],
   "coverageReporters": ["text", "lcov", "json"],

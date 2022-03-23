@@ -49,7 +49,7 @@ export interface ICreateVerifiableCredentialEIP712Args {
    * The signer of the Credential is chosen based on the `issuer.id` property
    * of the `credential`
    *
-   * '@context', 'type' and 'issuanceDate' will be added automatically if omitted
+   * `@context`, 'type' and 'issuanceDate' will be added automatically if omitted
    */
   credential: CredentialPayload
 

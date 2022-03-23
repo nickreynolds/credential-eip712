@@ -99,14 +99,19 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
       version: "1",
     };
 
+    console.log("prego");
     const types = getEthTypesFromInputDoc(message, "VerifiableCredential");
+    console.log("postgo. types: ", types);
     const from = args.ethereumAccountId;
     const obj = canonicalize({ types, domain, primaryType: "VerifiableCredential", message });
 
+    console.log("obj: ", obj);
     const signature = await promisify((cb: any) => {
+      console.log("provider: ", this.web3?.currentProvider);
       /* @ts-ignore: Ignore TS issue */
       this.web3?.currentProvider?.send({ method: "eth_signTypedData_v4", params: [from, obj], from }, cb)
     });
+    console.log("signature: ", signature);
 
     
     const newObj = JSON.parse(JSON.stringify(message));
