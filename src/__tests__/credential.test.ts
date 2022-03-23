@@ -208,26 +208,26 @@ describe('credential-eip712', () => {
     // expect(false).toBeTruthy();
   })
 
-  it('should fail with bad web3', () =>{
+  // it('should fail with bad web3', () =>{
 
-    expect(() => {}).toThrow()
-  })
-
-  
-  it('should fail with bad DID Resolver', () =>{
-
-    expect(() => {}).toThrow()
-  })
+  //   expect(() => {}).toThrow()
+  // })
 
   
-  it('should fail with wrong eth account as signer', () =>{
+  // it('should fail with bad DID Resolver', () =>{
 
-    expect(() => {}).toThrow()
-  })
+  //   expect(() => {}).toThrow()
+  // })
+
   
-  it('should fail to without issuer in credential', () =>{
+  // it('should fail with wrong eth account as signer', () =>{
 
-    expect(() => {}).toThrow()
-  })
+  //   expect(() => {}).toThrow()
+  // })
+  
+  // it('should fail to without issuer in credential', () =>{
+
+  //   expect(() => {}).toThrow()
+  // })
 
 })
