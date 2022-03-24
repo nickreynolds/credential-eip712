@@ -149,6 +149,7 @@ describe('credential-eip712', () => {
     expect(issued.issuer === did);
 
     const types = issued.proof.eip712Domain.messageSchema;
+    delete types.EIP712Domain;
     const domain = issued.proof.eip712Domain.domain;
     const proofWithoutValue = { verificationMethod: issued.proof.verificationMethod, created: issued.proof.created, proofPurpose: issued.proof.proofPurpose, type: issued.proof.type }
     const message = { ...issued, proof: proofWithoutValue};

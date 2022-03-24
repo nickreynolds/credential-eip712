@@ -18,7 +18,7 @@ import {
   IRequiredContext,
 } from '../types/ICredentialEIP712'
 
-import { getEthTypesFromInputDocEthers } from "eip-712-types-generation";
+import { getEthTypesFromInputDocEthers, getEthTypesFromInputDoc } from "eip-712-types-generation";
 import { Signer, ethers } from "ethers";
 
 /**
@@ -89,6 +89,7 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
     };
 
     const types = getEthTypesFromInputDocEthers(message, "VerifiableCredential");
+    const typesWithDomain = getEthTypesFromInputDoc(message, "VerifiableCredential");
 
     /* @ts-ignore: Ignore TS issue */
     const signature = await this.signer._signTypedData(domain, types, message)
@@ -106,7 +107,7 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
 
     newObj.proof.eip712Domain = {
       domain,
-      messageSchema: types,
+      messageSchema: typesWithDomain,
       primaryType: "VerifiableCredential",
     };
 
