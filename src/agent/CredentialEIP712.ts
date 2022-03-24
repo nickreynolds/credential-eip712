@@ -20,7 +20,6 @@ import {
 
 import { getEthTypesFromInputDocEthers } from "eip-712-types-generation";
 import { Signer, ethers } from "ethers";
-import { canonicalize } from "json-canonicalize";
 
 /**
  * A Veramo plugin that implements the {@link ICredentialIssuerEIP712} methods.

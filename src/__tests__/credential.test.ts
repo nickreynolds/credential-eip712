@@ -2,8 +2,6 @@ import { CredentialIssuerEIP712 } from '../agent/CredentialEIP712'
 import { DIDResolutionResult } from '@veramo/core'
 import { IRequiredContext } from '..'
 import { Wallet, ethers } from "ethers";
-import { recoverTypedSignature_v4 } from "eth-sig-util";
-import { VerifiableCredential } from '@veramo/core';
 
 const context: IRequiredContext = {
   agent: {
@@ -126,7 +124,6 @@ describe('credential-eip712', () => {
 
   const privateKeyHex = '9ba4417ca5f5c56be5c264f8248629291d1a0a820fa7fc9d803ea9a9aa51aba7'
   const wallet = new Wallet(privateKeyHex);
-  console.log("wallet: ", wallet);
 
   it('should throw error when misconfigured', () => {
     expect(() => {
@@ -187,7 +184,7 @@ describe('credential-eip712', () => {
     const did = "did:ethr:" + ethAddress;
     const cred = constructBadSocialMediaProfileLinkage(did, new Date().toISOString(), "test");
 
-    /* @ts-ignore: Ignore TS issue */
+    //@ts-ignore
     await expect(resolver.createVerifiableCredentialEIP712({ credential: cred, ethereumAccountId: ethAddress}, context)).rejects.toThrow()
   })
 

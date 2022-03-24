@@ -67,7 +67,7 @@ constants:
     - getVerifiableCredentialsForSdr
     - validatePresentationAgainstSdr
     # template: add your plugin methods here too. This assumes that your plugin is added to the agent. See below, toward the end of this config file.
-    - myPluginFoo
+    - createVerifiableCredentialEIP712
 
 # Database
 dbConnection:
@@ -279,4 +279,4 @@ agent:
           $args:
             - $ref: /dbConnection
           # template: install your plugin on the `@veramo/cli` agent
-        - $require: ./build#MyAgentPlugin
+        - $require: ./build/agent/CredentialEIP712

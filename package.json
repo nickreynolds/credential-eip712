@@ -1,6 +1,6 @@
 {
   "name": "credential-eip712",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "source": "src/index.ts",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -37,11 +37,9 @@
   ],
   "dependencies": {
     "@veramo/core": "3.1.2-next.57",
-    "@veramo/did-manager": "^3.0.0",
-    "@veramo/key-manager": "^3.0.0",
     "@veramo/utils": "3.1.2-next.57",
     "eip-712-types-generation": "^0.1.6",
-    "ethers": "5.6.1",
-    "json-canonicalize": "^1.0.4"
-  }
+    "ethers": "5.6.1"
+  },
+  "author": "Nick Reynolds <nick.reynolds@mesh.xyz>"
 }
