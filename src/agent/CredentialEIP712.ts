@@ -18,20 +18,9 @@ import {
   IRequiredContext,
 } from '../types/ICredentialEIP712'
 
-// import { promisify } from "util";
-
-import { canonicalize } from "json-canonicalize";
-import Web3 from "web3";
 import { getEthTypesFromInputDocEthers } from "eip-712-types-generation";
-import { Signer } from "ethers";
-
-const promisify = (inner:any) =>
-  new Promise((resolve, reject) =>
-    inner((err:any, res:any) => {
-      if (err) { reject(err) }
-      resolve(res);
-    })
-  );
+import { Signer, ethers } from "ethers";
+import { canonicalize } from "json-canonicalize";
 
 /**
  * A Veramo plugin that implements the {@link ICredentialIssuerEIP712} methods.
@@ -78,7 +67,7 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
     }
 
 
-    // use resolveOrThrow util
+    // TODO: use resolveOrThrow util
     let did: DIDResolutionResult;
     try {
       did = await context.agent.resolveDid({ didUrl: issuer });
@@ -89,9 +78,9 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
     // TODO: use util to get properly formatted blockchainAccountId
     const blockchainAccountId = did.didDocument?.verificationMethod![0].blockchainAccountId?.split("@")[0];
 
-    // if(this.web3.utils.toChecksumAddress(args.ethereumAccountId) !== this.web3.utils.toChecksumAddress(blockchainAccountId!)) {
-    //   throw new Error(`Controller of specified DID does not match Ethereum Account given.`);
-    // }
+    if(ethers.utils.getAddress(args.ethereumAccountId) !== ethers.utils.getAddress(blockchainAccountId!)) {
+      throw new Error(`Controller of specified DID does not match Ethereum Account given.`);
+    }
 
     const message = credential;
     const domain = {
@@ -100,28 +89,15 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
       version: "1",
     };
 
-    console.log("prego");
     const types = getEthTypesFromInputDocEthers(message, "VerifiableCredential");
-    console.log("postgo. types: ", types);
-    const from = args.ethereumAccountId;
-    const obj = canonicalize({ types, domain, primaryType: "VerifiableCredential", message });
-
-    console.log("obj: ", obj);
-    // const signature = await promisify((cb: any) => {
-    //   console.log("provider: ", this.web3?.currentProvider);
-    //   /* @ts-ignore: Ignore TS issue */
-    //   this.web3?.currentProvider?.send({ method: "eth_signTypedData_v4", params: [from, obj], from }, cb)
-    // });
 
     /* @ts-ignore: Ignore TS issue */
     const signature = await this.signer._signTypedData(domain, types, message)
-    console.log("signature: ", signature);
-
     
     const newObj = JSON.parse(JSON.stringify(message));
 
     newObj.proof = {
-      verificationMethod: did + "#controller",
+      verificationMethod: issuer + "#controller",
       created: issuanceDate,
       proofPurpose: "assertionMethod",
       type: "EthereumEip712Signature2021",
