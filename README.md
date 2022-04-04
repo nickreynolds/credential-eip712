@@ -11,7 +11,7 @@ This plugin allows for the signing of EIP712 Credentials, via a passed ethers `S
 * `yarn start` or VSCode Debugger (CMD + Shift + D) > Run `OpenAPI server`
 
 ## Usage
-* Add this plugin to your Veramo agent, with an `ethersjs Signer` object:
+* Add this plugin to your Veramo agent, with an `ethers.js Signer` object:
 
 ```
 import { createAgent, IResolver } from "@veramo/core";

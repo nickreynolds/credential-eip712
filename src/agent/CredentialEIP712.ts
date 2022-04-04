@@ -9,6 +9,8 @@ import {
   extractIssuer,
   MANDATORY_CREDENTIAL_CONTEXT,
   processEntryToArray,
+  resolveDidOrThrow,
+  getEthereumAddress
 } from "@veramo/utils"
 import { schema } from '../index'
 
@@ -21,6 +23,8 @@ import {
 import { getEthTypesFromInputDocEthers, getEthTypesFromInputDoc } from "eip-712-types-generation";
 import { Signer, ethers } from "ethers";
 
+import { interpretIdentifier } from "ethr-did-resolver";
+
 /**
  * A Veramo plugin that implements the {@link ICredentialIssuerEIP712} methods.
  *
@@ -32,7 +36,7 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
   readonly signer: Signer
 
   constructor(signer:Signer) {
-    if (!signer) throw Error('Missing Web3')
+    if (!signer) throw Error('Missing Signer')
     this.methods = {
       createVerifiableCredentialEIP712: this.createVerifiableCredentialEIP712.bind(this),
     }
@@ -65,25 +69,18 @@ export class CredentialIssuerEIP712 implements IAgentPlugin {
       throw new Error('invalid_argument: args.credential.issuer must not be empty')
     }
 
+    const didDocument = await resolveDidOrThrow(issuer, context);
 
-    // TODO: use resolveOrThrow util
-    let did: DIDResolutionResult;
-    try {
-      did = await context.agent.resolveDid({ didUrl: issuer });
-    } catch (e) {
-      throw new Error(`Unable to resolve specified DID: ${issuer}. ${e}`);
-    }
-
-    // TODO: use util to get properly formatted blockchainAccountId
-    const blockchainAccountId = did.didDocument?.verificationMethod![0].blockchainAccountId?.split("@")[0];
-
+    const blockchainAccountId = getEthereumAddress(didDocument.verificationMethod![0])
     if(ethers.utils.getAddress(args.ethereumAccountId) !== ethers.utils.getAddress(blockchainAccountId!)) {
       throw new Error(`Controller of specified DID does not match Ethereum Account given.`);
     }
 
+    const chainId = didDocument.verificationMethod![0].blockchainAccountId?.split(":").slice(-1)[0];
+
     const message = credential;
     const domain = {
-      chainId: 1,
+      chainId,
       name: "VerifiableCredential",
       version: "1",
     };

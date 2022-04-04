@@ -159,6 +159,26 @@ describe('credential-eip712', () => {
     expect(recoveredAddress === ethAddress);
   })
   
+  it('should issue credential from rinkeby did', async () =>{
+    const ethAddress = await wallet.getAddress();
+
+    const resolver = new CredentialIssuerEIP712(wallet)
+    const did = "did:ethr:rinkeby:" + ethAddress;
+    const cred = constructSocialMediaProfileLinkage(did, new Date().toISOString(), "test");
+    const issued = await resolver.createVerifiableCredentialEIP712({ credential: cred, ethereumAccountId: ethAddress}, context);
+    expect(issued.issuer === did);
+
+    const types = issued.proof.eip712Domain.messageSchema;
+    delete types.EIP712Domain;
+    const domain = issued.proof.eip712Domain.domain;
+    const proofWithoutValue = { verificationMethod: issued.proof.verificationMethod, created: issued.proof.created, proofPurpose: issued.proof.proofPurpose, type: issued.proof.type }
+    const message = { ...issued, proof: proofWithoutValue};
+
+    const recoveredAddress = ethers.utils.verifyTypedData(domain, types, message, issued.proof.proofValue);
+
+    expect(recoveredAddress === ethAddress);
+  })
+  
   it('should fail with bad DID Resolver', async () =>{
     const ethAddress = await wallet.getAddress();
 
